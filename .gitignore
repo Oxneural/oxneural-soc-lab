@@ -1,0 +1,73 @@
+# Environment and credentials — NEVER commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.ppk
+credentials
+credentials.*
+config.ini
+secrets.yaml
+secrets.yml
+.aws/
+aws-credentials*
+*_rsa
+*_ed25519
+*.p12
+*.pfx
+
+# Terraform / infrastructure state (may contain secrets)
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform/
+.terraform.lock.hcl
+crash.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Logs and captured data — may contain host, user or network detail
+*.log
+logs/
+*.pcap
+*.pcapng
+*.evtx
+alerts/
+exports/
+data/
+
+# Wazuh / SOAR local artefacts
+ossec.conf.local
+*.wazuh-backup
+shuffle-export-*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
