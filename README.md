@@ -130,7 +130,9 @@ Full policy: [`SECURITY.md`](SECURITY.md)
 
 Documentation and architecture first, deployment second. Nothing is deployed until the design has been reviewed and the teardown procedure exists.
 
-**Phase 1 (design) is complete and awaiting approval. No AWS resource has been created.**
+**Phase 1 (design) is complete, all decisions locked, awaiting approval. No AWS resource has been created.**
+
+**Locked:** region `ap-south-1` · AMI Ubuntu Server 24.04 LTS · Wazuh 4 vCPU / 8 GiB / 50 GB gp3 · quarantine egress TCP 443 only · AWS log ingestion by S3 polling. Full reasoning and sources: [`decisions.md`](docs/architecture/decisions.md).
 
 [`aws-prerequisites.md`](docs/deployment/aws-prerequisites.md) · [`deployment-plan.md`](docs/deployment/deployment-plan.md) · [`cost-model.md`](docs/deployment/cost-model.md) · [`rollback-plan.md`](docs/deployment/rollback-plan.md) · [`teardown-plan.md`](docs/deployment/teardown-plan.md)
 
@@ -158,7 +160,7 @@ All activity in this lab is against systems owned and controlled by OxNeural for
 
 | Area | Status |
 |---|---|
-| Phase 1 — AWS architecture and deployment design | **Complete, awaiting approval** |
+| Phase 1 — AWS architecture, deployment design, decisions locked | **Complete, awaiting approval** |
 | AWS environment | **Not deployed** |
 | Wazuh deployment | **Not deployed** |
 | Shuffle deployment | **Not deployed** |

@@ -35,13 +35,22 @@ A multi-node cluster is the right answer when you must demonstrate high availabi
 
 ## Sizing
 
-**[DESIGN DECISION]** `wazuh-aio` proposed at 2 vCPU / 8 GiB — RAM requirement met in full, vCPU below the documented figure.
+**[DESIGN DECISION] LOCKED: 4 vCPU / 8 GiB / 50 GB gp3** — Wazuh's documented minimum for the 1–25 agent profile, adopted in full.
 
-The documented 4 vCPU is specified for **25 agents with 90 days of retention**. This lab runs ~3 agents with a far shorter window — roughly two orders of magnitude less indexing work. RAM, which is what causes hard failures in the indexer, is met exactly.
+An earlier draft proposed 2 vCPU on the argument that ~3 agents is far below the 25-agent basis of the table. **That proposal is withdrawn.** Running below a documented minimum makes every later failure ambiguous, and the saving is small against an instance that is stopped between sessions. Stability over optimisation on a first build.
 
-**This is a recorded deviation from documented minimums, not a claim that Wazuh runs fine at half spec.** Acceptance criterion AC-03 tests it explicitly. If indexing lags or the dashboard is unusable, the remedy is one instance size up — not tuning around a resource shortfall.
+| Item | Value |
+|---|---|
+| vCPU | **4** |
+| RAM | **8 GiB** |
+| Storage | **50 GB gp3**, baseline IOPS |
+| Expected agents | **3** — `wazuh-aio`, `shuffle`, `target-01` |
+| Retention assumption | Shorter than the 90 days the 50 GB figure assumes, so storage carries headroom |
 
-**[VERIFIED FACT]** Storage: 50 GB for the 1–25 agent / 90-day profile. **[DESIGN DECISION]** Retention shorter than 90 days, so 50 GB gp3 is ample headroom.
+Storage stays at the documented 50 GB rather than being trimmed: a full disk stops indexing, which is a silent detection outage — precisely the failure this lab exists to teach people to notice.
+
+Full reasoning: [`decisions.md`](decisions.md) §3.
+
 
 ## Installation
 
@@ -53,7 +62,15 @@ curl -sO https://packages.wazuh.com/4.14/wazuh-install.sh && sudo bash ./wazuh-i
 
 **[VERIFIED FACT]** Supported OS includes Amazon Linux 2023, Ubuntu 22.04/24.04 and RHEL 8/9, on x86_64 or ARM64.
 
-**[OPEN QUESTION]** Base AMI not fixed. Amazon Linux 2023 ships the SSM agent preinstalled, which matters because SSM is the only access path — an instance without a working SSM agent is unreachable by design. Ubuntu LTS is more commonly documented in Wazuh community material. **Decide before Phase 3; verify the installer version current at deployment rather than assuming 4.14.**
+**[DESIGN DECISION] LOCKED: Ubuntu Server 24.04 LTS.**
+
+**[VERIFIED FACT]** Both candidates were neutral on the two criteria that looked decisive: Wazuh supports Amazon Linux 2023 *and* Ubuntu 24.04 ([Wazuh quickstart](https://documentation.wazuh.com/current/quickstart.html)), and AWS lists SSM Agent as preinstalled on *both* ([AMIs with SSM Agent preinstalled](https://docs.aws.amazon.com/systems-manager/latest/userguide/ami-preinstalled-agent.html)).
+
+An earlier draft claimed AL2023 held an SSM advantage. **AWS documentation says otherwise, and that correction is recorded rather than quietly dropped.** With the technical criteria neutral, the call rests on troubleshooting speed — the breadth of matching community material for Wazuh and Docker when something breaks, which is a real operational cost in a learning lab.
+
+Full reasoning, including why AL2023 remains a legitimate alternative: [`decisions.md`](decisions.md) §2.
+
+**Verify the current installer version at deployment rather than assuming 4.14.**
 
 ## Data sources
 
@@ -65,7 +82,13 @@ curl -sO https://packages.wazuh.com/4.14/wazuh-install.sh && sudo bash ./wazuh-i
 | CloudTrail | AWS module, S3 | Unauthorized IAM |
 | VPC Flow Logs | AWS module, S3 | Suspicious network |
 
-**[OPEN QUESTION]** AWS module ingestion via S3 polling or SQS notifications. Polling is the default assumption — simpler, no extra resource, no extra IAM permission. Confirm at deployment.
+**[DESIGN DECISION] LOCKED: S3 bucket polling** via the `aws-s3` wodle. No SQS queue is created.
+
+**[VERIFIED FACT]** Wazuh's CloudTrail documentation configures ingestion by pointing the `aws-s3` wodle at the bucket, requiring only `s3:GetObject` and `s3:ListBucket` ([Wazuh — CloudTrail](https://documentation.wazuh.com/current/cloud-security/amazon/services/supported-services/cloudtrail.html)).
+
+**Accepted trade-off:** ingestion latency is bounded by the poll interval — events do not appear instantly. Fine for a lab measuring triage quality rather than seconds-to-detect, but stated so nobody later reports a poll interval as a detection time.
+
+Full comparison: [`decisions.md`](decisions.md) §5.
 
 ## Access
 

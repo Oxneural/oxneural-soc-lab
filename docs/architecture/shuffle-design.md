@@ -116,7 +116,7 @@ Detailed playbooks: [`../incident-response/`](../incident-response/)
 
 - Stop the instance when not in use
 - Confirm containers come up healthy after a stop/start cycle — `vm.max_map_count` persistence is verified here
-- **Enrichment failure must never suppress an alert.** If the threat intelligence API is unavailable, the alert still reaches the analyst, unenriched and flagged as such. An enrichment dependency that silently swallows alerts is worse than no enrichment. Tested as AC-09.
+- **Enrichment failure must never suppress an alert.** If the threat intelligence API is unavailable, the alert still reaches the analyst, unenriched and flagged as such. An enrichment dependency that silently swallows alerts is worse than no enrichment. Tested as AC-65.
 
 ## Backup
 

@@ -58,7 +58,7 @@ Launch `wazuh-aio` with `role-wazuh`. Run the installation assistant. Change eve
 - Stack healthy
 - **All default credentials changed**
 - Dashboard reachable via SSM port forwarding **and confirmed unreachable from the internet by testing from outside AWS**
-- **AC-33: sizing deviation validated** — 2 vCPU against Wazuh's documented 4. If inadequate, move up one size and record the finding.
+- **AC-33: performance acceptable at the documented 4 vCPU / 8 GiB**, with a baseline recorded for any later, evidence-based downsizing experiment
 - Healthy after a full stop/start cycle
 
 ---

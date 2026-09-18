@@ -108,15 +108,15 @@ A NAT gateway is the most common cause of a surprise bill on a small AWS lab —
 
 | Instance | Role | Proposed size | Rationale |
 |---|---|---|---|
-| `wazuh-aio` | Wazuh manager + indexer + dashboard | 2 vCPU / 8 GiB | RAM requirement met in full; vCPU below documented figure — see below |
+| `wazuh-aio` | Wazuh manager + indexer + dashboard | **4 vCPU / 8 GiB** | Wazuh's documented minimum for 1–25 agents — **LOCKED** |
 | `shuffle` | Shuffle SOAR (Docker) | 2 vCPU / 4 GiB | Meets the documented RAM minimum |
 | `target-01` | Telemetry source and simulation target | Smallest viable | Generates host logs; disposable |
 
-**[DESIGN DECISION]** `wazuh-aio` is proposed at 2 vCPU rather than the documented 4. The Wazuh figure is specified for 25 agents and 90 days of retention. This lab will run roughly three agents with a far shorter retention window — perhaps two orders of magnitude less indexing work. The RAM requirement, which is the one that causes hard failures in the indexer, is met in full.
+**[DESIGN DECISION] LOCKED: 4 vCPU / 8 GiB.** An earlier draft proposed 2 vCPU as a documented deviation, arguing that ~3 agents is far below the 25-agent basis of Wazuh's table. That reasoning was not unsound, but it was the wrong trade for a first deployment: a deviation from documented minimums makes every subsequent failure ambiguous — configuration, rule, or undersized host? Stability beats a small saving on a first build, and the instance is stopped between sessions anyway.
 
-**This is a deliberate deviation from documented minimums and is recorded as such.** It is not a claim that Wazuh runs fine at half spec. Validation step AC-03 in [`../testing/acceptance-criteria.md`](../testing/acceptance-criteria.md) tests it explicitly; if indexing or dashboard response is inadequate, the documented remedy is to move up one instance size, not to tune around it.
+Full reasoning: [`decisions.md`](decisions.md) §3.
 
-**[OPEN QUESTION]** Confirm the exact instance types at deployment against current regional availability and pricing. No instance type or price is committed here — see [`../deployment/cost-model.md`](../deployment/cost-model.md).
+**[DESIGN DECISION] LOCKED: region `ap-south-1` (Mumbai)** and **base AMI Ubuntu Server 24.04 LTS** on all three instances. See [`decisions.md`](decisions.md) §1 and §2. Exact instance types are selected at deployment against live availability; no price is committed here — see [`../deployment/cost-model.md`](../deployment/cost-model.md).
 
 **Option B, if cost proves tighter than expected:** collapse `wazuh-aio` and `shuffle` onto one larger instance. It is cheaper to stop and start one instance than two, but it places the SOAR platform and the SIEM in the same failure and compromise domain — which undercuts part of what this lab exists to demonstrate. Recommended only if the two-instance model proves unaffordable in practice.
 

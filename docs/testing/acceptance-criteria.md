@@ -14,10 +14,11 @@ What "done" means for each phase. A phase is not complete until its criteria are
 |---|---|---|
 | AC-01 | Architecture documented with verified facts cited to official sources | ✓ |
 | AC-02 | Every AWS resource has a stated cost category, stop behaviour and teardown step | ✓ |
-| AC-03 | Sizing deviations recorded explicitly, with a test defined | ✓ |
+| AC-03 | Sizing adopted at documented minimums; no undocumented deviation remains | ✓ |
 | AC-04 | Teardown and rollback plans written **before** deployment | ✓ |
 | AC-05 | IAM model documents permissions rather than granting AdministratorAccess | ✓ |
 | AC-06 | No AWS resource created, no credential created, no secret created | ✓ |
+| AC-07 | Region, AMI, Wazuh sizing, quarantine egress and log ingestion **locked** against official documentation | ✓ |
 
 ---
 
@@ -52,10 +53,10 @@ What "done" means for each phase. A phase is not complete until its criteria are
 | AC-30 | Wazuh stack installed and healthy | | |
 | AC-31 | **All installer-generated default credentials changed** | | |
 | AC-32 | Dashboard reachable via SSM port forwarding **and NOT from the internet** | | |
-| AC-33 | **Sizing deviation validated**: indexing and dashboard usable at 2 vCPU | | |
+| AC-33 | Performance acceptable at the **documented** 4 vCPU / 8 GiB; baseline recorded | | |
 | AC-34 | Stack healthy after a full stop/start cycle | | |
 
-**AC-33 is the recorded deviation from Wazuh's documented 4 vCPU.** If it fails, the documented remedy is one instance size up. **Record the failure — a documented deviation that proved wrong is a useful finding.**
+**AC-33 no longer validates a deviation.** The 2 vCPU proposal was withdrawn in favour of Wazuh's documented 4 vCPU — see [`../architecture/decisions.md`](../architecture/decisions.md) §3. This criterion now confirms the deployment performs acceptably at the documented specification and **records a baseline**, against which a later, evidence-based downsizing experiment could be run if cost ever justifies one.
 
 **AC-32 is verified by attempting to reach the dashboard from outside AWS and confirming it does not respond.** Confirming the security group looks right is not the same test.
 

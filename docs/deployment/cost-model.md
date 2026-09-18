@@ -4,7 +4,11 @@
 
 ## How to read this document
 
-**No dollar figures appear here.** AWS pricing varies by region and changes; publishing a number I have not verified for the chosen region on the day of deployment would be inventing a metric. Every resource is instead given a **cost category** and a link to the official pricing page, which is the source of truth.
+**No dollar figures appear here.** AWS pricing varies by region and changes; publishing a number not verified for the chosen region on the day of deployment would be inventing a metric. Every resource is instead given a **cost category** and a link to the official pricing page, which is the source of truth.
+
+**Region: `ap-south-1` (Mumbai) — LOCKED.** Lower-cost regions exist; at three small instances stopped between sessions the saving is a fraction of an already small bill, set against a permanently worse interactive dashboard experience. See [`../architecture/decisions.md`](../architecture/decisions.md) §1.
+
+**Wazuh instance sizing: 4 vCPU / 8 GiB — LOCKED**, Wazuh's documented minimum. The earlier 2 vCPU proposal was withdrawn: stability beats a small saving on a first build, and the instance is stopped between sessions so the larger size is paid for only in hours actually used.
 
 | Category | Meaning |
 |---|---|
@@ -20,7 +24,7 @@
 | | |
 |---|---|
 | **Why required** | Wazuh all-in-one, Shuffle SOAR, and a telemetry source. Without compute there is no lab. |
-| **Minimum viable** | RAM-led sizing: Wazuh documents 8 GiB, Shuffle documents 4 GiB minimum. See [`../architecture/final-aws-architecture.md`](../architecture/final-aws-architecture.md) §4 for the sizing decision and its recorded deviation. |
+| **Minimum viable** | Wazuh's documented minimum adopted in full: **4 vCPU / 8 GiB**. Shuffle documents 4 GiB minimum. See [`../architecture/decisions.md`](../architecture/decisions.md) §3. |
 | **Cost category** | **POTENTIALLY EXPENSIVE** if left running continuously; **LOW-COST** under stop-when-idle discipline |
 | **Can be stopped?** | **Yes — and this is the single largest cost lever in the lab.** Stopped instances incur no compute charge. |
 | **Ongoing charges?** | Compute stops when stopped. **Attached EBS volumes do not.** |
