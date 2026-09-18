@@ -86,13 +86,29 @@ Honest reasoning: at three instances, subnet-level segmentation adds routing com
 
 ## Containment capability
 
-For the isolate-host response action: replace the instance's security group with a quarantine group having **no rules at all** — no inbound, no outbound.
+For the isolate-host response action: replace the instance's security groups with `sg-quarantine` — **zero inbound, TCP 443 outbound only**, specified below.
 
 **[DESIGN DECISION]** Isolation is achieved by changing the security group, not by terminating the instance. The host stays alive and inspectable. Termination destroys the volatile evidence that explains how it was compromised.
 
 **This action requires human approval.** See [`../incident-response/incident-response-process.md`](../incident-response/incident-response-process.md).
 
-**[OPEN QUESTION]** Whether the quarantine group should permit SSM egress so the host remains reachable for forensics. Retaining access is operationally valuable but is a live channel on a suspect host. Decide before Phase 6 and record the reasoning.
+### `sg-quarantine` — **LOCKED**
+
+| Direction | Rule | Reason |
+|---|---|---|
+| **Inbound** | **None. Zero rules.** | Total inbound containment |
+| **Outbound** | **TCP 443 only** | The minimum that keeps SSM alive for forensic access |
+| Outbound | Nothing else — no 80, no 53, no intra-lab | Cuts lateral movement out and every non-443 channel |
+
+It **replaces** the instance's security groups rather than adding to them, so the host is cut off from every other lab host in both directions instantly.
+
+**[VERIFIED FACT]** Session Manager requires outbound HTTPS 443 to the `ssm`, `ssmmessages` and `ec2messages` regional endpoints, and states no inbound requirement ([Session Manager prerequisites](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-prerequisites.html)).
+
+**Residual risk, accepted and recorded:** 443 outbound is a viable command-and-control channel. A rule-free quarantine group would close it — and would also sever SSM, leaving the analyst able only to terminate the host and destroy the evidence. Perfect containment with zero forensics is not a win in a lab built to practise investigation. The channel stays visible in VPC Flow Logs while open, and the "attacker" here is a controlled simulation.
+
+**Hardened alternative, documented but not adopted:** SSM VPC interface endpoints with quarantine egress restricted to those endpoints' private addresses, closing general internet egress entirely. That is the correct production pattern; three interface endpoints carry continuous hourly charges, which is not justified for a lab used a few hours a week. **If this lab ever handles anything non-synthetic, adopt the endpoint model.**
+
+Full reasoning: [`../architecture/decisions.md`](../architecture/decisions.md) §4.
 
 ## Verification
 

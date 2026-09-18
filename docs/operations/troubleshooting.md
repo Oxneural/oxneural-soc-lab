@@ -56,7 +56,7 @@ Most common cause: the instance was just started and SSM has not registered yet.
 
 ### Indexer will not start, or the dashboard is very slow **[ANTICIPATED]**
 
-**This is the recorded sizing deviation surfacing.** [`../architecture/wazuh-design.md`](../architecture/wazuh-design.md) documents 2 vCPU against Wazuh's documented 4 vCPU for the 1–25 agent profile.
+**The host runs at Wazuh's documented minimum (4 vCPU / 8 GiB), so a resource shortfall here is not an undersizing you accepted** — investigate the actual cause rather than assuming the instance is too small. See [`../architecture/decisions.md`](../architecture/decisions.md) §3.
 
 ```
 1. Check memory pressure and CPU saturation
@@ -64,7 +64,7 @@ Most common cause: the instance was just started and SSM has not registered yet.
 3. Check index size against retention intent
 ```
 
-**The remedy is one instance size up, not tuning around a resource shortfall.** Record the observation in the acceptance criteria — a documented deviation that proved wrong is a useful finding, not an embarrassment.
+If the documented specification genuinely proves insufficient for this workload, that is a finding worth recording against AC-33 — and worth reporting upstream, because it contradicts Wazuh's published sizing.
 
 ### Agent not reporting **[ANTICIPATED]**
 
@@ -134,7 +134,7 @@ Most likely the same `vm.max_map_count` persistence issue. Check it before anyth
 4. CRITICAL: confirm the alert still reached the analyst unenriched
 ```
 
-**Step 4 is the one that matters.** Enrichment failing is an inconvenience; enrichment failing *silently and suppressing the alert* is a monitoring outage. Tested as AC-09.
+**Step 4 is the one that matters.** Enrichment failing is an inconvenience; enrichment failing *silently and suppressing the alert* is a monitoring outage. Tested as AC-65.
 
 ---
 

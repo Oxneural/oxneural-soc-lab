@@ -104,7 +104,13 @@ Permissions in scope:
 
 Nothing else. Wazuh reads logs; it does not need to write to S3, touch EC2, or read IAM.
 
-**[OPEN QUESTION]** If the Wazuh AWS module is configured to use SQS notifications rather than polling S3, it additionally needs `sqs:ReceiveMessage` and `sqs:DeleteMessage` on one queue. Confirm the ingestion method against Wazuh documentation at deployment and scope accordingly. **Polling is the simpler, cheaper option and is the current default assumption.**
+**[DESIGN DECISION] LOCKED: S3 bucket polling.** No SQS queue is created, so no SQS permission is granted.
+
+**[VERIFIED FACT]** Wazuh's CloudTrail documentation specifies, following least privilege, read-only access of `s3:GetObject` and `s3:ListBucket`, with `s3:DeleteObject` added only if Wazuh is to delete logs ([Wazuh — CloudTrail](https://documentation.wazuh.com/current/cloud-security/amazon/services/supported-services/cloudtrail.html)).
+
+**[DESIGN DECISION]** `s3:DeleteObject` is **deliberately excluded**. Retention is handled by S3 lifecycle rules. Granting delete on the audit-log bucket to the component that reads it would let a compromise of Wazuh destroy the evidence trail — the exact outcome the CloudTrail tampering detection exists to catch.
+
+See [`../architecture/decisions.md`](../architecture/decisions.md) §5.
 
 ### `role-shuffle`
 

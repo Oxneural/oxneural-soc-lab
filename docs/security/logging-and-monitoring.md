@@ -57,9 +57,13 @@ VPC Flow Logs ─▶ S3 ┘
 Host telemetry ────────▶ Wazuh agent (TLS) ──────────▶ decode ──▶ normalise ──▶ rules
 ```
 
-**[OPEN QUESTION]** Wazuh's AWS module supports polling S3 directly or consuming SQS notifications. **Polling is the default assumption** — simpler, no extra resource, no extra IAM permission. SQS reduces latency and API calls; adopt only if polling proves inadequate. Confirm against Wazuh documentation at deployment.
+**[DESIGN DECISION] LOCKED: S3 bucket polling** via the `aws-s3` wodle. No SQS queue is created — fewer resources, fewer permissions, fewer failure modes, one less thing to miss at teardown.
 
-**[DESIGN DECISION]** `role-wazuh` receives `s3:GetObject` and `s3:ListBucket` scoped to the log bucket and its prefixes, and nothing else. See [`iam-design.md`](iam-design.md).
+**Accepted trade-off:** ingestion latency is bounded by the poll interval. Events do not appear in Wazuh the instant they occur. Acceptable for a lab measuring triage quality rather than seconds-to-detect — and stated explicitly so that a poll interval is never later reported as a detection time.
+
+Full comparison: [`../architecture/decisions.md`](../architecture/decisions.md) §5.
+
+**[DESIGN DECISION]** `role-wazuh` receives `s3:GetObject` and `s3:ListBucket` scoped to the log bucket and its prefixes, and nothing else — **`s3:DeleteObject` is deliberately excluded** so a compromise of Wazuh cannot destroy the audit trail. See [`iam-design.md`](iam-design.md).
 
 ## Field normalisation
 

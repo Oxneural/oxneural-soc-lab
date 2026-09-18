@@ -61,7 +61,7 @@ A phase whose rollback has never been exercised is an assumption. The first time
 
 **Cost exposure:** MEDIUM — orphaned EBS volumes are the risk. Verify deletion, do not assume it.
 
-**If it fails at the documented sizing:** this is the recorded deviation in [`../architecture/final-aws-architecture.md`](../architecture/final-aws-architecture.md) §4 revealing itself. The remedy is to move up one instance size, not to tune around a resource shortfall.
+**If it fails at the documented sizing:** the host runs at Wazuh's published minimum (4 vCPU / 8 GiB — [`../architecture/decisions.md`](../architecture/decisions.md) §3), so do not assume undersizing. Capture the installer log and diagnose the actual cause before changing the instance type.
 
 ### Phase 4 — Agents and ingestion
 

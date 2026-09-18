@@ -86,6 +86,22 @@ Three groups, one per role. **Every group starts with an empty inbound rule set.
 | Outbound | HTTPS 443 → `0.0.0.0/0` | SSM, package updates |
 | Outbound | → `sg-wazuh` on agent port | Send telemetry |
 
+### `sg-quarantine` — **LOCKED**
+
+Applied to isolate a host during incident response. It **replaces** the instance's security groups; it does not add to them.
+
+| Direction | Rule | Reason |
+|---|---|---|
+| **Inbound** | **None. Zero rules.** | Total inbound containment; no lateral movement into the host |
+| **Outbound** | **TCP 443 only** | The minimum that keeps SSM alive for forensic access |
+| Outbound | Nothing else — no 80, no 53, no intra-lab | Cuts lateral movement out and every non-443 channel |
+
+**[VERIFIED FACT]** Session Manager requires outbound HTTPS 443 to `ssm`, `ssmmessages` and `ec2messages` regional endpoints, and requires no inbound port ([Session Manager prerequisites](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-prerequisites.html)).
+
+**[DESIGN DECISION]** A quarantine group with no rules at all would be stronger containment — and would sever SSM, leaving the analyst able only to terminate the host, which destroys the volatile evidence explaining how it was compromised. **Residual risk accepted and recorded:** 443 egress is a viable C2 channel, mitigated here by the traffic remaining visible in VPC Flow Logs and the "attacker" being a controlled simulation. The hardened alternative — SSM VPC interface endpoints with egress restricted to them — is documented in [`decisions.md`](decisions.md) §4 and not adopted because three endpoints carry continuous hourly charges.
+
+Applying quarantine is a containment action and **requires human approval**.
+
 ## Rules that will never exist in this lab
 
 - `0.0.0.0/0` inbound, on any port, for any duration — "temporarily" included

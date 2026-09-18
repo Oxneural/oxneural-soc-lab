@@ -26,9 +26,15 @@ Selection criteria, in order:
 | **Service availability** | Confirm every service in the design exists in the chosen region |
 | **Data residency** | No personal or client data is involved, so this does not constrain the choice |
 
-**[OPEN QUESTION]** Region not yet fixed. Given the operator is in India, `ap-south-1` (Mumbai) is the obvious latency candidate, but **price must be compared against at least one lower-cost region before committing** — the latency difference matters less than continuous cost for a lab used a few hours a week.
+**[DESIGN DECISION] LOCKED: `ap-south-1` (Mumbai).**
 
-**[DESIGN DECISION]** Whichever is chosen, record it in the deployment log and use it exclusively. Teardown verification must still check all regions.
+The dashboards are used interactively over an SSM tunnel and the operator is in Mumbai, so latency is felt on every click. Lower-cost regions exist, but at three small instances stopped between sessions the saving is a fraction of an already small bill, set against a permanently worse interactive experience. Single-region discipline also reduces the chance of a resource being launched — and later missed at teardown — somewhere else.
+
+Full reasoning: [`../architecture/decisions.md`](../architecture/decisions.md) §1.
+
+- [ ] **Confirm in the console** that every service in this design is available in `ap-south-1` — recorded as an assumption, not a verified fact, because the live services grid could not be read programmatically
+
+All resources are created in `ap-south-1` and nowhere else. **Teardown verification still checks every region.**
 
 ## 3. Cost controls — before any chargeable resource
 
@@ -65,6 +71,8 @@ Tagging is what makes cost attributable and teardown verifiable. Untagged resour
 - [ ] `git status` confirms no credential file is tracked
 
 **[DESIGN DECISION]** No SSH key pair is created. Access is exclusively via Session Manager, so there is no private key to protect, lose or accidentally commit.
+
+**[DESIGN DECISION] LOCKED: base AMI Ubuntu Server 24.04 LTS** on all three instances — one patch baseline, one package manager. **[VERIFIED FACT]** SSM Agent is preinstalled on Ubuntu Server 24.04 LTS ([AMIs with SSM Agent preinstalled](https://docs.aws.amazon.com/systems-manager/latest/userguide/ami-preinstalled-agent.html)); AWS notes the preinstalled version may not be current, so it is updated on first boot. See [`../architecture/decisions.md`](../architecture/decisions.md) §2.
 
 ## 6. Service quota checks
 
