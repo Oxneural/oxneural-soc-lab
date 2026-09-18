@@ -106,7 +106,50 @@ The address · full enrichment response · service queried and query timestamp �
 
 Record the reasoning, not only the verdict. A future analyst needs to know *why* the call was made.
 
-## 11. Operational notes
+## 11. Provider selection — free tier, verified
+
+**[DESIGN DECISION]** No paid API is assumed. The lab is designed around a free tier, and the workflow must degrade gracefully when the quota is exhausted.
+
+### AbuseIPDB — primary candidate
+
+**[VERIFIED FACT]** AbuseIPDB offers a free plan named **"Individual"**, with these published limits ([AbuseIPDB pricing](https://www.abuseipdb.com/pricing)):
+
+- "1,000 IP Checks & Reports / Day"
+- "100 Block Checks / Day"
+- "Basic Blacklist up to 10,000 IPs"
+- No credit card required; described as "Forever!"
+
+1,000 checks per day is far beyond what this lab will generate. It is the strongest fit.
+
+**[ASSUMPTION]** These limits are current as of this design. **Re-verify on the pricing page before implementation** — free tiers change, and a design built on a quota that has since shrunk fails at the worst moment.
+
+### Other candidates
+
+**[OPEN QUESTION]** Not yet evaluated against current official terms. Before adopting any of them, check the provider's own documentation for the current free allowance, rate limit and acceptable-use terms:
+
+- Geolocation and ASN lookup services with free tiers
+- Public blocklists usable without an API key
+- Community threat intelligence feeds
+
+**Do not adopt a provider on the basis of a blog post describing its free tier.** Check the provider's own pricing page.
+
+### Requirements for any provider
+
+- [ ] Free tier adequate for lab volume, verified on the provider's own page
+- [ ] Terms permit this use
+- [ ] No requirement to submit data beyond the IP being checked
+- [ ] Documented rate limits, so the workflow can respect them
+- [ ] API key storable in an environment variable — **never committed**
+
+### Quota exhaustion
+
+**[DESIGN DECISION]** When the daily quota is exhausted, the workflow **attaches a note that enrichment was unavailable and passes the alert to the analyst unenriched.** It never queues, never retries indefinitely, and never drops the alert.
+
+This is the same rule as AC-65: enrichment failing is an inconvenience; enrichment failing silently and suppressing the alert is a monitoring outage.
+
+**[DESIGN DECISION]** Cache results for a short period. Repeated lookups of the same address during one investigation waste quota and tell you nothing new.
+
+## 12. Operational notes
 
 - Respect API rate limits; cache results for a short period
 - Handle service unavailability gracefully — never block the alert pipeline on an external dependency
