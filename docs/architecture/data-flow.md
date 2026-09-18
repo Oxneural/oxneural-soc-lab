@@ -1,57 +1,113 @@
-# Data Flow
+# Data Flow — PLANNED
 
-**Status:** Design. Nothing described here is running.
+> **PLANNED. Nothing described here is running.**
 
-## End-to-end flow
+## Detection data flow
 
 ```
-Event occurs (auth attempt, API call, network connection)
+EVENT OCCURS
+  AWS API call · console sign-in · IAM change        → CloudTrail
+  Network connection accepted or rejected            → VPC Flow Logs
+  Authentication · process · file change on a host   → Wazuh agent
         │
         ▼
-Captured by source          CloudTrail | VPC Flow Logs | Wazuh agent
+TRANSPORT
+  CloudTrail    ──▶ S3 (encrypted, lifecycle expiry)
+  Flow Logs     ──▶ S3 (encrypted, lifecycle expiry)
+  Host telemetry──▶ Wazuh manager over TLS
         │
         ▼
-Transported to Wazuh manager                (TLS)
+INGESTION
+  Wazuh AWS module polls S3          ──┐
+  Wazuh agent stream                 ──┼──▶ Wazuh manager
         │
         ▼
-Decoded and normalised      → common field names, parsed timestamps
+DECODE AND NORMALISE
+  Common field names · UTC timestamps · parsed values
         │
         ▼
-Rule evaluation             → match? severity? 
-        │
-        ├── no match ──▶ stored for retention window, searchable
-        │
-        ▼
-Alert generated             → alert ID, rule ID, severity, raw event retained
+RULE EVALUATION
+        ├── no match ──▶ stored, searchable for the retention window
         │
         ▼
-Forwarded to Shuffle SOAR                   (webhook / API)
+ALERT GENERATED
+  alert id · rule id · severity · raw event retained
         │
         ▼
-Enrichment                  → IP reputation, IAM context, asset context
+INDEXED                    ──▶ analyst dashboard (via SSM tunnel)
         │
         ▼
-Enriched alert presented to analyst
-        │
-        ▼
-Analyst triage              → disposition recorded
-        │
-        ├── False Positive ──────▶ tuning feedback ──▶ rule updated
-        ├── Benign True Positive ─▶ documented, baseline updated
-        └── True Positive ───────▶ investigation
-                                        │
-                                        ▼
-                              [APPROVAL GATE] ──▶ response action
-                                        │
-                                        ▼
-                              Evidence captured, incident documented
+WEBHOOK ──▶ Shuffle SOAR
 ```
+
+## Incident response data flow
+
+```
+Shuffle receives alert
+        │
+        ▼
+EXTRACT indicators — IP · user · host · process · event name
+        │
+        ▼
+FILTER — skip RFC1918, loopback, known-good lab addresses
+         BEFORE any external lookup
+        │        (no internal address is ever sent to a third party)
+        ▼
+ENRICH  (automatic — nothing disruptive, no approval needed)
+        ├── IP reputation · geolocation · ASN
+        ├── Seen in the lab before?
+        ├── IAM context — policy document, actor baseline, MFA used?
+        └── Asset context — host role, baseline behaviour
+        │
+        ▼
+RISK ASSESSMENT — documented severity criteria applied
+        │
+        ▼
+ENRICHED ALERT PRESENTED TO ANALYST
+        │
+        ▼
+╔════════════════════════════════════════════╗
+║        HUMAN APPROVAL GATE                 ║
+║  No disruptive action executes automatically║
+╚════════════════════════════════════════════╝
+        │
+        ▼
+ANALYST DECISION
+        ├── False positive ──────▶ document ──▶ TUNING FEEDBACK ──┐
+        ├── Benign true positive ▶ document, baseline updated ────┤
+        ├── Monitor ─────────────▶ heightened monitoring ─────────┤
+        └── Respond ─────────────▶ approved action only           │
+                                        │                         │
+                                        ▼                         │
+                        EVIDENCE CAPTURED BEFORE REMEDIATION      │
+                                        │                         │
+                                        ▼                         │
+                        RESPONSE EXECUTED (approved)              │
+                                        │                         │
+                                        ▼                         │
+                        INCIDENT DOCUMENTED                       │
+                                        │                         │
+                                        └─────────────────────────┘
+                                          feeds back to rule tuning
+```
+
+**The feedback loop is part of the design.** A detection whose false positives never reach the rule that produced them stays noisy forever.
+
+## Where the approval gate sits, and why
+
+Automatic, no approval: enrichment, context lookup, notification, increased monitoring — nothing that changes state.
+
+Approval required: block an address, disable an identity or key, isolate a host, modify a security group, terminate or rebuild.
+
+**[DESIGN DECISION]** The gate exists because enrichment is probabilistic. A reputation hit on a NAT or CGNAT address represents an entire ISP's customer base; automatic blocking on that signal converts a false positive into an outage. Automation prepares the action and attaches the context. A human decides.
+
+**[DESIGN DECISION]** `role-shuffle` holds no AWS API permissions in the initial build, so the gate is enforced by IAM as well as by workflow design — not only by the workflow being drawn correctly. See [`../security/iam-design.md`](../security/iam-design.md).
 
 ## Field normalisation
 
-Detection logic depends on consistent field names across sources. Without normalisation, a rule written against CloudTrail cannot correlate with a rule written against host logs.
+Detection depends on consistent field names. Without it, a CloudTrail rule cannot correlate with a host rule.
 
-| Concept | Normalised field |
+| Concept | Field |
 |---|---|
 | Source address | `srcip` |
 | Destination address | `dstip` |
@@ -62,33 +118,42 @@ Detection logic depends on consistent field names across sources. Without normal
 
 ## Time
 
-**All timestamps normalised to UTC at ingestion.** Sources are NTP-synchronised. Unsynchronised clocks make correlation unreliable and timelines indefensible — this is the single most common cause of an investigation reaching the wrong conclusion.
+**All timestamps normalised to UTC at ingestion.** Sources NTP-synchronised, verified as a health check rather than assumed.
+
+Unsynchronised clocks make correlation unreliable and timelines indefensible. It is the most common cause of an investigation reaching a confidently wrong conclusion, and it is invisible until someone tries to build a timeline.
 
 ## Data volume
 
-Not stated. Volume will be measured during deployment and reported then, with the measurement method. Estimating it now and publishing the estimate would be inventing a figure.
+**Not stated.** Volume will be measured during deployment and reported then, with the method. Publishing an estimate now would be inventing a figure.
 
-## Retention intent
+## Retention
 
 | Data | Intent |
 |---|---|
-| Raw logs | Short window sufficient for investigation; cost-bounded |
-| Alerts | Longer than raw logs — alerts are small |
-| Incident documentation | Retained for the life of the lab |
+| Raw logs in S3 | Long enough to investigate, short enough to bound cost; lifecycle expiry |
+| Wazuh alerts | Longer than raw logs — alerts are small |
+| Incident documentation | Life of the lab, in git |
 
-Exact periods are set in the deployment plan once storage cost is measured.
+Exact periods set once storage cost is measured. See [`../security/logging-and-monitoring.md`](../security/logging-and-monitoring.md).
 
 ## What is never in this pipeline
 
 No client data. No third-party data. No personal data. No production telemetry from any other environment. The lab generates its own activity, synthetically.
 
-## Failure modes to watch
+## Failure modes
 
-An unmonitored pipeline fails silently and everything downstream looks healthy:
+An unmonitored pipeline fails silently, and everything downstream looks healthy:
 
-- Agent stops reporting → host goes dark, no alert fires, absence looks like calm
-- Log destination fills or permission changes → ingestion stops
-- Webhook to SOAR fails → alerts generate but never reach enrichment
-- Clock drift → correlation breaks
+| Failure | Appears as | Detected by |
+|---|---|---|
+| Agent stops reporting | A quiet host | Agent heartbeat alert (AC-44) |
+| S3 delivery stops | No new cloud events | Daily delivery check |
+| Webhook to Shuffle fails | Alerts generated, never enriched | Per-alert delivery check |
+| Enrichment API unavailable | Alerts without context | Daily API check — **must not suppress the alert** (AC-65) |
+| Clock drift | Timelines that do not line up | Daily time-sync check |
 
-Each of these gets a health check defined in [`../testing/validation-plan.md`](../testing/validation-plan.md). **Monitoring the monitoring is part of the design, not an afterthought.**
+**Absence of alerts is not evidence of absence of activity.** It is equally consistent with a broken pipeline. These checks are what distinguish the two — monitoring the monitoring is part of the design, not an afterthought.
+
+## Related
+
+[`architecture-overview.md`](architecture-overview.md) · [`final-aws-architecture.md`](final-aws-architecture.md) · [`wazuh-design.md`](wazuh-design.md) · [`shuffle-design.md`](shuffle-design.md) · [`../testing/validation-plan.md`](../testing/validation-plan.md)

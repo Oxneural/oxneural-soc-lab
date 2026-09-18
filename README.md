@@ -58,7 +58,7 @@ AWS account (isolated lab)
       Documentation and evidence
 ```
 
-Full detail: [`docs/architecture/architecture-overview.md`](docs/architecture/architecture-overview.md) · [`docs/architecture/aws-architecture.md`](docs/architecture/aws-architecture.md) · [`docs/architecture/data-flow.md`](docs/architecture/data-flow.md)
+Full detail: [`docs/architecture/final-aws-architecture.md`](docs/architecture/final-aws-architecture.md) · [`network-architecture.md`](docs/architecture/network-architecture.md) · [`security-architecture.md`](docs/architecture/security-architecture.md) · [`data-flow.md`](docs/architecture/data-flow.md) · [`wazuh-design.md`](docs/architecture/wazuh-design.md) · [`shuffle-design.md`](docs/architecture/shuffle-design.md) · [`diagram-specification.md`](docs/architecture/diagram-specification.md)
 
 ## 4. Technology Stack
 
@@ -130,13 +130,19 @@ Full policy: [`SECURITY.md`](SECURITY.md)
 
 Documentation and architecture first, deployment second. Nothing is deployed until the design has been reviewed and the teardown procedure exists.
 
-[`docs/deployment/prerequisites.md`](docs/deployment/prerequisites.md) · [`docs/deployment/deployment-plan.md`](docs/deployment/deployment-plan.md)
+**Phase 1 (design) is complete and awaiting approval. No AWS resource has been created.**
+
+[`aws-prerequisites.md`](docs/deployment/aws-prerequisites.md) · [`deployment-plan.md`](docs/deployment/deployment-plan.md) · [`cost-model.md`](docs/deployment/cost-model.md) · [`rollback-plan.md`](docs/deployment/rollback-plan.md) · [`teardown-plan.md`](docs/deployment/teardown-plan.md)
+
+**Security design:** [`iam-design.md`](docs/security/iam-design.md) · [`network-security.md`](docs/security/network-security.md) · [`secrets-management.md`](docs/security/secrets-management.md) · [`logging-and-monitoring.md`](docs/security/logging-and-monitoring.md)
+
+**Operations:** [`lab-runbook.md`](docs/operations/lab-runbook.md) · [`maintenance.md`](docs/operations/maintenance.md) · [`troubleshooting.md`](docs/operations/troubleshooting.md)
 
 ## 11. Testing Approach
 
 Every detection is validated against a documented test case before it is considered complete. A rule that has never fired in a test is an untested assumption.
 
-[`docs/testing/validation-plan.md`](docs/testing/validation-plan.md) · [`docs/testing/test-cases.md`](docs/testing/test-cases.md)
+[`validation-plan.md`](docs/testing/validation-plan.md) · [`test-cases.md`](docs/testing/test-cases.md) · [`acceptance-criteria.md`](docs/testing/acceptance-criteria.md)
 
 ## 12. Teardown and Cost Control
 
@@ -152,7 +158,7 @@ All activity in this lab is against systems owned and controlled by OxNeural for
 
 | Area | Status |
 |---|---|
-| Architecture and design documentation | Active Development |
+| Phase 1 — AWS architecture and deployment design | **Complete, awaiting approval** |
 | AWS environment | **Not deployed** |
 | Wazuh deployment | **Not deployed** |
 | Shuffle deployment | **Not deployed** |

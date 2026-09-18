@@ -78,3 +78,7 @@ Acting first and diagnosing second is correct here. The environment is disposabl
 | Date | Type | Performed by | Verified zero resources | Notes |
 |---|---|---|---|---|
 | | | | | |
+
+## Related
+
+[`cost-model.md`](cost-model.md) — per-resource cost categories and removal steps · [`rollback-plan.md`](rollback-plan.md) — reversing a phase rather than removing the lab · [`../testing/acceptance-criteria.md`](../testing/acceptance-criteria.md) — AC-90 to AC-96 verify teardown actually worked

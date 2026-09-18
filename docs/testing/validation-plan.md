@@ -77,3 +77,7 @@ No timings, rates or performance figures appear anywhere in this repository unti
 ## Re-validation
 
 Re-run after: rule changes, Wazuh or Shuffle upgrades, new log sources, and quarterly regardless. Detections rot quietly as the environment moves.
+
+## Related
+
+[`acceptance-criteria.md`](acceptance-criteria.md) — what "done" means per phase · [`test-cases.md`](test-cases.md) · [`../deployment/deployment-plan.md`](../deployment/deployment-plan.md)
