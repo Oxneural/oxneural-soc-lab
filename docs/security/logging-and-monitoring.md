@@ -2,7 +2,7 @@
 
 > **PLANNED. No logging source has been enabled.**
 
-## Sources
+## Log sources
 
 | Source | Captures | Destination | Feeds |
 |---|---|---|---|

@@ -51,7 +51,6 @@ Storage stays at the documented 50 GB rather than being trimmed: a full disk sto
 
 Full reasoning: [`decisions.md`](decisions.md) §3.
 
-
 ## Installation
 
 **[VERIFIED FACT]** Quickstart method ([Wazuh quickstart](https://documentation.wazuh.com/current/quickstart.html)):

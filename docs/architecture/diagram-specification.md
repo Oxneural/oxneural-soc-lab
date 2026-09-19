@@ -17,19 +17,23 @@ A drawing specification, so any diagram of this lab is consistent regardless of 
 ## Layers, top to bottom
 
 ### Layer 0 — Analyst
+
 Single actor box: `SOC Analyst (authorised operator)`. One arrow down, labelled `SSM Session Manager — outbound-initiated, IAM + MFA, CloudTrail-logged`.
 
 **Draw this arrow as entering the AWS boundary without crossing any inbound port.** Annotate: `No inbound ports open`.
 
 ### Layer 1 — AWS account boundary
+
 Outer container: `AWS Account — dedicated lab`. Corner badges: `MFA enforced` · `AWS Budgets` · `CloudWatch billing alarm` · `CloudTrail enabled`.
 
 ### Layer 2 — VPC
+
 Container inside the account: `VPC 10.0.0.0/16 (single AZ)`, containing one subnet box `Public subnet 10.0.1.0/24`.
 
 Annotate the subnet: `Public route for EGRESS only — no inbound rule on any security group`.
 
 ### Layer 3 — Compute
+
 Three instance boxes inside the subnet, each showing its security group:
 
 | Box | Label | Security group annotation |
@@ -39,6 +43,7 @@ Three instance boxes inside the subnet, each showing its security group:
 | `target-01` | Telemetry source / simulation target | `sg-target · 0 inbound from internet` |
 
 ### Layer 4 — Logging sources
+
 A band feeding upward into `wazuh-aio`:
 
 ```
@@ -50,12 +55,15 @@ Host / auth / FIM (Wazuh agent) ────────┘
 Label the S3 box: `S3 — encrypted, public access blocked, lifecycle expiry`.
 
 ### Layer 5 — Detection
+
 `Wazuh: decode → normalise → rule evaluation → alert`. Output arrow labelled `Alert (webhook)`.
 
 ### Layer 6 — SOAR
+
 `Shuffle workflow`, with a side branch to `Threat intelligence — IP reputation, ASN, geo` and a return arrow labelled `Enrichment attached`.
 
 ### Layer 7 — The approval gate
+
 **Draw as a distinct, visually prominent element — a diamond or a heavy horizontal bar spanning the response path.** Label:
 
 ```
@@ -66,9 +74,11 @@ No disruptive action executes automatically
 Nothing may bypass it on the diagram. If a line goes around it, the diagram is wrong.
 
 ### Layer 8 — Response
+
 `Response action: block · disable · isolate · monitor · close`, reached only through the gate.
 
 ### Layer 9 — Documentation
+
 `Evidence capture · disposition · incident record`, with a **feedback arrow returning to Layer 5** labelled `tuning feedback`. The loop is part of the design, not decoration.
 
 ## Egress annotation

@@ -28,6 +28,7 @@ Create VPC, subnet, route table, internet gateway, security groups. **No compute
 - All resources tagged with the five required tags
 
 **Checkpoint (AC-10 to AC-13):**
+
 - Network exists and is tagged
 - Security group rules reviewed line by line — inbound from internet CIDRs: zero
 - **Phase torn down and rebuilt once, to prove rollback works before anything depends on it**
@@ -41,6 +42,7 @@ Free-tier components; cost exposure negligible.
 Enable CloudTrail (one management trail, all regions, to S3) and VPC Flow Logs (to S3). S3 bucket encrypted, public access blocked, lifecycle expiry applied at creation.
 
 **Checkpoint (AC-20 to AC-23):**
+
 - **A deliberate test action appears in CloudTrail.** Observing an event, not confirming the configuration looks correct.
 - Flow log objects landing in S3
 - Lifecycle rules active from day one
@@ -55,6 +57,7 @@ Launch `wazuh-aio` with `role-wazuh`. Run the installation assistant. Change eve
 **[VERIFIED FACT]** `curl -sO https://packages.wazuh.com/4.14/wazuh-install.sh && sudo bash ./wazuh-install.sh -a` ([Wazuh quickstart](https://documentation.wazuh.com/current/quickstart.html)). Confirm the current version at deployment rather than assuming 4.14.
 
 **Checkpoint (AC-30 to AC-34):**
+
 - Stack healthy
 - **All default credentials changed**
 - Dashboard reachable via SSM port forwarding **and confirmed unreachable from the internet by testing from outside AWS**
@@ -68,6 +71,7 @@ Launch `wazuh-aio` with `role-wazuh`. Run the installation assistant. Change eve
 Launch `target-01`. Install and enrol the Wazuh agent. Configure the AWS module for CloudTrail and flow logs. Verify parsing.
 
 **Checkpoint (AC-40 to AC-44):**
+
 - Events from all three sources visible and correctly parsed
 - Timestamps UTC and consistent across sources
 - **AC-44: stop the agent and confirm an alert fires.** A host going dark must be detected, not read as calm. This is the single most important check in the phase.
@@ -79,6 +83,7 @@ Launch `target-01`. Install and enrol the Wazuh agent. Configure the AWS module 
 Implement detections one at a time. Each is validated before the next is added.
 
 **Checkpoint (AC-50 to AC-54):**
+
 - Each rule fires on its positive test case
 - **Each rule stays silent on its negative test case**
 - False positives observed and documented, or a stated reason none was
@@ -94,6 +99,7 @@ Detections are committed to git as they are validated, so rollback is `git rever
 Launch `shuffle` with `role-shuffle`. Install via Docker. **Set `vm.max_map_count` persistently** in `/etc/sysctl.d/`, not with `sysctl -w` alone. Set admin credentials at first login. Connect the Wazuh webhook. Build enrichment workflows.
 
 **Checkpoint (AC-60 to AC-65):**
+
 - Admin credentials set
 - UI reachable via SSM only; **9200 confirmed unreachable from the internet**
 - An alert reaches Shuffle and returns enriched
@@ -116,6 +122,7 @@ Run every scenario start to finish: trigger → detect → enrich → triage →
 Update the repository with **what was actually built, actually measured and actually observed** — including what did not work and where this plan was wrong.
 
 **Checkpoint (AC-100 to AC-104):**
+
 - No claim unsupported by a recorded observation
 - No metric without its measurement method
 - Diagram title updated from PLANNED; undeployed components still dashed

@@ -74,7 +74,7 @@ Detailed diagram specification: [`diagram-specification.md`](diagram-specificati
 
 ## 3. The two decisions that shape everything else
 
-### 3.1 No inbound ports. Access is via SSM Session Manager.
+### 3.1 No inbound ports. Access is via SSM Session Manager
 
 **[VERIFIED FACT]** AWS Systems Manager Session Manager is offered "at no additional charge" for Amazon EC2 instances ([AWS Systems Manager pricing](https://aws.amazon.com/systems-manager/pricing/)).
 
@@ -89,7 +89,7 @@ Why this matters more than it first appears:
 
 This removes the single most common way a home lab becomes an incident.
 
-### 3.2 No NAT gateway.
+### 3.2 No NAT gateway
 
 **[VERIFIED FACT]** NAT Gateway is charged both hourly and per gigabyte processed: "you are charged for each 'NAT Gateway-hour' that your gateway is provisioned and available. Data processing charges apply for each gigabyte processed through the NAT gateway" ([Amazon VPC pricing](https://aws.amazon.com/vpc/pricing/)).
 
