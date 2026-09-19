@@ -1,0 +1,10 @@
+# Claims allowlist — oxneural-soc-lab
+#
+# Each path below contains prohibited wording only inside an explicit negation
+# or a stated limitation. Read the line before assuming otherwise.
+
+docs/architecture/architecture-overview.md   # lists 24/7 staffed operations among things this lab is NOT
+docs/architecture/security-architecture.md   # states it is not a 24/7 monitored environment
+docs/architecture/final-aws-architecture.md  # "enterprise-grade is not the same as appropriate"
+docs/architecture/wazuh-design.md            # explains why the enterprise answer is the wrong one here
+docs/detection/detection-engineering.md      # "zero false positives" appears only as the thing NOT to claim

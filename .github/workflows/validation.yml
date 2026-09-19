@@ -1,0 +1,83 @@
+name: Validation
+
+# Detection content and configuration are the product of this repository.
+# Invalid YAML that only fails at deployment time is a defect this catches first.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  yaml-lint:
+    name: YAML validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install yamllint
+        run: pip install --no-cache-dir yamllint==1.35.1
+      - name: Lint YAML
+        run: |
+          set -euo pipefail
+          files=$(git ls-files '*.yml' '*.yaml')
+          if [ -z "$files" ]; then echo "No YAML files yet — nothing to lint."; exit 0; fi
+          echo "$files"
+          yamllint -c .yamllint.yml $files
+
+  markdown-lint:
+    name: Markdown lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          globs: "**/*.md"
+
+  link-check:
+    name: Link check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --no-progress
+            --max-retries 3
+            --accept 200,206,429
+            --exclude linkedin\.com
+            --verbose
+            '**/*.md'
+          fail: true
+
+  claims-guard:
+    name: Claims guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/check-claims.sh
+
+  deployment-status-honesty:
+    name: Deployment status honesty check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail if test-result tables were filled in without a deployment
+        run: |
+          set -euo pipefail
+          # While the repository declares that nothing is deployed, no document
+          # may assert a completed deployment. This check exists so the honest
+          # status cannot drift silently out of date.
+          if grep -rqi "no AWS resources have been deployed" README.md; then
+            if grep -rniE "deployed to production|running in production|live deployment" --include='*.md' .; then
+              echo "::error::README states nothing is deployed, but a document claims a live deployment."
+              exit 1
+            fi
+            echo "Status consistent: repository declares no deployment and no document contradicts it."
+          else
+            echo "README no longer declares an undeployed state — skipping. Update this check when deployment happens."
+          fi
